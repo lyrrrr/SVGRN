@@ -43,8 +43,6 @@ opt = parser.parse_args()
 if opt.task == 'simulation_allcell_GRN':
     if opt.setting == 'default':
         opt.n_epochs = 150   #120 150
-        # opt.beta = 5
-        # opt.alpha = 100
         opt.K1 = 1
         opt.K2 = 2
         opt.n_hidden = 128
@@ -52,7 +50,7 @@ if opt.task == 'simulation_allcell_GRN':
         opt.lr = 1e-4
         opt.lr_step_size = 0.99
         opt.batch_size = 64      #64
-        opt.GPU = True
+        # opt.GPU = True
 
     model = non_celltype_GRN_model(opt)
 
