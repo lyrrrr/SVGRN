@@ -2,9 +2,10 @@ python main_stage2_allcell.py \
     --setting default \
     --data_file in_sim/g110_c2k_0.1/expression_loc_cluster.csv \
     --net_path in_sim/g110_c2k_0.1/cell_specific_gt_gene_pair \
-    --model_file out_stage1/g110_c2k_0.1/train_gpu_1/stage1.pt \
-    --save_path out_stage2/g110_c2k_0.1_subset/c10_w6_5_100 \
+    --model_file out_stage1/g110_c2k_0.1_train_gpu_b4_a100/stage1.pt \
+    --save_path out_stage2/g110_c2k_0.1_subset/c10_w6_b5_a100 \
     --cellname_list in_sim/g110_c2k_0.1/cellname_random_10.npy \
     --W 6 \
     --beta 5 \
     --alpha 100 \
+    --GPU

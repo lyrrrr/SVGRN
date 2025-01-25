@@ -97,9 +97,11 @@ class non_celltype_GRN_model:
 
         if opt.GPU:
             cvae = CVAE_EAD_newED(adj_A_init, 1, opt.n_hidden, opt.K, y_pos_dim).float().cuda()
-            print("load model")
+            
         else:
             cvae = CVAE_EAD_newED(adj_A_init, 1, opt.n_hidden, opt.K, y_pos_dim).float()
+
+        print("Build model....")
 
         optimizer = optim.RMSprop(cvae.parameters(), lr=opt.lr)
         optimizer2 = optim.RMSprop([cvae.adj_A], lr=opt.lr * 0.2)

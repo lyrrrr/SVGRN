@@ -6,6 +6,5 @@ python main_stage1.py \
     --save_name out_stage1/g110_c2k_0.1_train_gpu_b4_a100 \
     --beta 5 \
     --alpha 100 \
-    --GPU True \
-    --dropout_mask False
+    --GPU
 

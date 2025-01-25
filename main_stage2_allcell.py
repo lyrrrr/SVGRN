@@ -38,16 +38,21 @@ parser.add_argument('--model_file', type=str, default='', help='The loaded stage
 parser.add_argument('--target_cell_name', type=str, default='', help='The target cell name for GRN in stage 2')
 
 ####### if use GPU ################
-parser.add_argument('--GPU', type=bool, default=False, help='Use GPU or not')
+parser.add_argument('--GPU', action='store_true', help='Use GPU or not')
 parser.add_argument('--device', type=str, default='', help='cpu or gpu')
 
 ###### load cell name .npy #######
 parser.add_argument('--cellname_list', type=str, default='', help='cell name ')
 
 ######### if need dropout mask for sparse data #############
-parser.add_argument('--dropout_mask', type=bool, default=False, help='if need dropout mask')
+parser.add_argument('--dropout_mask', action='store_true', help='if need dropout mask')
 
 opt = parser.parse_args()
+
+try:
+    os.mkdir(os.path.dirname(opt.save_path))
+except:
+    print(f'{os.path.dirname(opt.save_path)} exist')
 
 try:
     os.mkdir(opt.save_path)
@@ -56,16 +61,10 @@ except:
 
 if opt.setting == 'default':
     opt.n_epochs = 150   #120 150
-    # opt.beta = 1
-    # opt.alpha = 100
-    # opt.K1 = 1
-    # opt.K2 = 2
     opt.n_hidden = 128
     opt.gamma = 0.95
-    # opt.lr = 1e-4
     opt.lr_step_size = 0.99
     opt.batch_size = 64 
-    opt.GPU = True
 
 with open(os.path.join(opt.save_path, 'args.txt'), 'a') as f:
         json.dump(opt.__dict__, f, indent=2)

@@ -112,7 +112,12 @@ class SC_GRN_model:
     def train_model(self):
         self.opt.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         print(self.opt.device)
+
         opt = self.opt
+        if opt.GPU:
+            print("Using GPU.....")
+        else:
+            print("Not using GPU....")
         
         dataloader, Evaluate_Mask, num_nodes, num_genes, data, truth_edges, TFmask2, gene_name = self.init_data()
         
