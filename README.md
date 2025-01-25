@@ -35,7 +35,7 @@ bash train_main_stage2_allcell.sh
 
 ### scMultiSim configuration for simulation data generation
 
-In our experiments, we used scMultiSim[^1] to generate simulated spatial transcriptomics datasets with dynamic GRNs.
+In our experiments, we used scMultiSim[1] to generate simulated spatial transcriptomics datasets with dynamic GRNs.
 
 More information about their R package installation can be found in their document: https://zhanglabgt.github.io/scMultiSim/articles/
 
@@ -44,7 +44,7 @@ Here, we provide the R script with hyperparameters we used for running scMultiSi
 
 ### CeSpGRN configuration
 
-In our benchmark experiments, we compared our model with CeSpGRN[^2]. 
+In our benchmark experiments, we compared our model with CeSpGRN[2]. 
 
 - CeSpGRN source code can be downloaded from their github repository:
 https://github.com/PeterZZQ/CeSpGRN
@@ -59,6 +59,6 @@ max_iters = 1000
 ```
 
 ### Reference
-[^1] Li, Hechen, et al. "scMultiSim: simulation of multi-modality single cell data guided by cell-cell interactions and gene regulatory networks." Research Square (2023): rs-3.
+[1] Li, Hechen, et al. "scMultiSim: simulation of multi-modality single cell data guided by cell-cell interactions and gene regulatory networks." Research Square (2023): rs-3.
 
-[^2] Zhang, Ziqi, et al. "CeSpGRN: Inferring cell-specific gene regulatory networks from single cell multi-omics and spatial data." bioRxiv (2022): 2022-03.
+[2] Zhang, Ziqi, et al. "CeSpGRN: Inferring cell-specific gene regulatory networks from single cell multi-omics and spatial data." bioRxiv (2022): 2022-03.
