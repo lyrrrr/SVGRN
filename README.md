@@ -9,6 +9,22 @@ cd SVGRN
 conda env create -f environment.yml
 ```
 
+### Structure description
+
+- `in_sim` stores the input simulation data.
+
+- `out_stage1` stores whole-tissue GRN matrix in "RN_150.csv" and the trained model in stage 1 in "stage1.pt".  
+
+- `out_stage2` stores the model's results of the cell-specifc GRNs for each cell in the folder of the cell's name.  
+
+- `scMultiSim_DataPrepare` stores the example R scripts for running scMultiSim to generate simulation data, and `sim_prepare.py` is the Python script used for change the simulated data to the format of model input. 
+
+- `scr` stores python script for SVGRN model structure (`Con_Model_newED.py`), stage 1 and stage 2 training process (`SVGRN_allcell.py`, `SVGRN_singlecell.py`).
+
+- `train_main_stage1.sh` runs the Python script of `main_stage1.py` to train the model for the first stage.
+
+- `train_main_stage2_allcell.sh` runs the Python script of `main_stage2_allcell.py` to train the model for the second stage.
+
 ### Stage 1
 
 - run stage 1 training bash file
