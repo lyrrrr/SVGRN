@@ -1,5 +1,7 @@
 # SVGRN
 
+SVGRN is a CVAE based deep learning model for cell-specific GRN inference from spatial transcriptomics data.
+
 ### Environment setup
 
 - Use the environment.yml to create the anaconda virtual environment for SVGRN:
@@ -9,7 +11,7 @@ cd SVGRN
 conda env create -f environment.yml
 ```
 
-### Structure description
+### Folder Structure
 
 - `in_sim` stores the input simulation data.
 
