@@ -30,7 +30,7 @@ parser.add_argument('--save_name', type=str, default='', help='folder in save pa
 parser.add_argument('--data_file', type=str, help='The input scRNA-seq gene expression file.')
 parser.add_argument('--net_file', type=str, default='',
                     help='The ground truth of GRN. Only used in GRN inference task if available. ')
-parser.add_argument('--net_path', type=str, default='',
+parser.add_argument('--net_path', type=str, default=None,
                     help='The folder path of the GT GRN.')                    
 
 ####### params for single cell training (stage 2) ########
@@ -75,7 +75,10 @@ start_time = time.time()
 
 for cellname in cell_name_list:
     # current GT net file and current target cell name
-    opt.net_file = os.path.join(opt.net_path, f"{cellname}_gt_gene_pairs.csv")
+    if opt.net_path is not None:
+        opt.net_file = os.path.join(opt.net_path, f"{cellname}.csv")
+    else:
+        opt.net_file = None
     opt.target_cell_name = cellname
     print(cellname, opt.net_file)
     opt.save_name = os.path.join(opt.save_path, cellname)

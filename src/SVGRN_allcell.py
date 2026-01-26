@@ -17,52 +17,41 @@ from src.utils import evaluate, extractEdgesFromMatrix
 class non_celltype_GRN_model:
     def __init__(self, opt):
         self.opt = opt
-        try:
-            os.mkdir(opt.save_name)
-        except:
-            print('dir exist')
+        os.makedirs(opt.save_name, exist_ok=True)
 
-    def initalize_A(self, data):
-        num_genes = data.shape[1]
-        A = np.ones([num_genes, num_genes]) / (num_genes - 1) + (np.random.rand(num_genes * num_genes) * 0.0002).reshape(
-            [num_genes, num_genes])
+    def initalize_A_withTF(self, TF_mask):
+        A = TF_mask.copy()
         for i in range(len(A)):
             A[i, i] = 0
         return A
 
     def init_data(self):
 
-        Ground_Truth = pd.read_csv(self.opt.net_file, header=0)
-        Ground_Truth = Ground_Truth.astype(str)      # change all the value to string (gene names)
-        TF = set(Ground_Truth['gene2'])   # "gene2" columns are TF genes
-        All_gene = set(Ground_Truth['gene1']) | set(Ground_Truth['gene2'])
-        print(f"TF {TF}")
-        print(f"TF num {len(TF)}, All_gene num {len(All_gene)}")
-        #print(f"Ground_Truth data type {Ground_Truth.dtypes}")
-
         All_Data = pd.read_csv(self.opt.data_file, index_col=[0])
-        
-        #print(f"if all gene names are string: {all(type(n) == str for n in gene_name)}")
         pos_df = All_Data[['x','y']]
-        # normalize position x, y
         pos_df=(pos_df-pos_df.min(0))/(pos_df.max(0)-pos_df.min(0))
+        data = All_Data.drop(columns=['x', 'y', 'ClusterID'], errors='ignore')
+        data.columns = data.columns.astype(str)
+        All_gene = list(data.columns)     # gene column names are all string
+        gene_name = All_gene
 
-        data = All_Data.drop(columns=['x', 'y','ClusterID'])
-        gene_name = list(data.columns)     # gene column names are all string
-        # print(data.head(5))
+        # load TF list from a file or other sources
+        with open(self.opt.tf_list, "r") as f:
+            TF = [line.strip() for line in f if line.strip()]
+
+        print(f"TF {TF}, all gene {All_gene}")
+        print(f"TF num {len(TF)}, All_gene num {len(All_gene)}")
+
         data_values = data.values
         Dropout_Mask = (data_values != 0).astype(float)
         
         num_genes, num_nodes = data.shape[1], data.shape[0]
         print(f"num_genes {num_genes}, num_nodes {num_nodes}")
-        Evaluate_Mask = np.zeros([num_genes, num_genes])
         TF_mask = np.zeros([num_genes, num_genes])
         for i, item in enumerate(data.columns):
             for j, item2 in enumerate(data.columns):
                 if i == j:
                     continue
-                if item2 in TF and item in All_gene:
-                    Evaluate_Mask[i, j] = 1
                 if item2 in TF:
                     TF_mask[i, j] = 1
 
@@ -71,27 +60,29 @@ class non_celltype_GRN_model:
 
         # add the spatial (x,y) here as pos_train
         train_data = TensorDataset(feat_train, torch.LongTensor(list(range(len(feat_train)))),
-                                   torch.FloatTensor(Dropout_Mask), pos_train)
+                                torch.FloatTensor(Dropout_Mask), pos_train)
 
         dataloader = DataLoader(train_data, batch_size=self.opt.batch_size, shuffle=True, num_workers=1)
-        truth_df = pd.DataFrame(np.zeros([num_genes, num_genes]), index=data.columns, columns=data.columns)
-        for i in range(Ground_Truth.shape[0]):
-            truth_df.loc[Ground_Truth.iloc[i, 0], Ground_Truth.iloc[i, 1]] = 1
-        # print(truth_df.head(5))
-        A_truth = truth_df.values
-        idx_rec, idx_send = np.where(A_truth)
-        print(f"idx_rec {len(set(idx_rec))}, idx_send {len(set(idx_send))}")
-        truth_edges = set(zip(idx_send, idx_rec))
 
-        return dataloader, Evaluate_Mask, num_nodes, num_genes, data, truth_edges, TF_mask, gene_name
+        if self.opt.net_file is None:
+            print("No ground truth file provided.")
+            truth_edges = None
+        else:
+            Ground_Truth = pd.read_csv(self.opt.net_file, index_col=0)
+            nonzero_indices = np.where(Ground_Truth.values != 0)
+            truth_edges = [(int(Ground_Truth.columns[col])-1, int(Ground_Truth.index[row])-1) for row, col in zip(*nonzero_indices)]
+            truth_edges = set(truth_edges)   # idx_send, idx_rec
+
+        return dataloader, num_nodes, num_genes, data, truth_edges, TF_mask, gene_name
+
 
     def train_model(self):
         self.opt.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         print(self.opt.device)
         opt = self.opt
 
-        dataloader, Evaluate_Mask, num_nodes, num_genes, data, truth_edges, TFmask2, gene_name = self.init_data()
-        adj_A_init = self.initalize_A(data)
+        dataloader, num_nodes, num_genes, data, truth_edges, TFmask2, gene_name = self.init_data()
+        adj_A_init = self.initalize_A_withTF(TFmask2)
 
         y_pos_dim = 128
 
@@ -160,21 +151,30 @@ class non_celltype_GRN_model:
             scheduler.step()
 
             if epoch % (opt.K1 + opt.K2) >= opt.K1:
-                if opt.GPU:
-                    Ep, Epr = evaluate(cvae.adj_A.cpu().detach().numpy(), truth_edges, Evaluate_Mask)
-                else:
-                    Ep, Epr = evaluate(cvae.adj_A.detach().numpy(), truth_edges, Evaluate_Mask)
+                if truth_edges is not None:
+                    if opt.GPU:
+                        Ep, Epr = evaluate(cvae.adj_A.cpu().detach().numpy(), truth_edges, TFmask2)
+                    else:
+                        Ep, Epr = evaluate(cvae.adj_A.detach().numpy(), truth_edges, TFmask2)
 
-                best_Epr = max(Epr, best_Epr)
-                print('epoch:', epoch, 'Ep:', Ep, 'Epr:', Epr, 'loss:',
+                    best_Epr = max(Epr, best_Epr)
+                    print('epoch:', epoch, 'Ep:', Ep, 'Epr:', Epr, 'loss:',
+                        np.mean(loss_all), 'mse_loss:', np.mean(mse_rec), 'kl_loss:', np.mean(loss_kl), 'sparse_loss:',
+                        np.mean(loss_sparse))
+
+                    with open(opt.save_name + '/log1.txt', 'a') as f:
+                        # Write the text to the file
+                        f.write(f"Epoch: {epoch}, Ep: {Ep}, Epr: {Epr}, loss: {np.mean(loss_all)} " +
+                        f"mse_loss: {np.mean(mse_rec)}, kl_loss: {np.mean(loss_kl)}, sparse_loss:{np.mean(loss_sparse)}\n")
+                else:
+                    print('epoch:', epoch, 'loss:',
                       np.mean(loss_all), 'mse_loss:', np.mean(mse_rec), 'kl_loss:', np.mean(loss_kl), 'sparse_loss:',
                       np.mean(loss_sparse))
 
-                with open(opt.save_name + '/log1.txt', 'a') as f:
-                    # Write the text to the file
-                    f.write(f"Epoch: {epoch}, Ep: {Ep}, Epr: {Epr}, loss: {np.mean(loss_all)} " +
-                      f"mse_loss: {np.mean(mse_rec)}, kl_loss: {np.mean(loss_kl)}, sparse_loss:{np.mean(loss_sparse)}\n")
-                
+                    with open(opt.save_name + '/log1.txt', 'a') as f:
+                        # Write the text to the file
+                        f.write(f"Epoch: {epoch}, loss: {np.mean(loss_all)} " +
+                        f"mse_loss: {np.mean(mse_rec)}, kl_loss: {np.mean(loss_kl)}, sparse_loss:{np.mean(loss_sparse)}\n")
 
         if opt.GPU:
             RN_df = pd.DataFrame(cvae.adj_A.cpu().detach().numpy(), columns=list(gene_name))
@@ -182,9 +182,6 @@ class non_celltype_GRN_model:
             RN_df = pd.DataFrame(cvae.adj_A.detach().numpy(), columns=list(gene_name))
         RN_df.to_csv(opt.save_name + f"/RN_{opt.n_epochs}.csv", index=False)
         
-        with open(opt.save_name + '/log1.txt', 'a') as f:
-            # Write the text to the file
-            f.write(f"Best EPR: {best_Epr}\n")
         # save model
         torch.save(cvae, opt.save_name + "/stage1.pt")        
 

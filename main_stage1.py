@@ -14,8 +14,9 @@ parser.add_argument('--task', type=str, default='celltype_GRN',
 parser.add_argument('--setting', type=str, default='default', help='Determine whether or not to use the default hyper-parameter')
 parser.add_argument('--batch_size', type=int, default=64, help='The batch size used in the training process.')
 parser.add_argument('--data_file', type=str, help='The input scRNA-seq gene expression file.')
-parser.add_argument('--net_file', type=str, default='',
+parser.add_argument('--net_file', type=str, default=None,
                     help='The ground truth of GRN. Only used in GRN inference task if available. ')
+parser.add_argument('--tf_list', type=str, help='The TF list file. Each line contains one TF gene name.')
 parser.add_argument('--alpha', type=float, default=100, help='The loss coefficient for L1 norm of W, which is same as \\alpha used in our paper.')
 parser.add_argument('--beta', type=float, default=1, help='The loss coefficient for KL term (beta-VAE), which is same as \\beta used in our paper.')
 parser.add_argument('--lr', type=float, default=1e-4, help='The learning rate of used for RMSprop.')
@@ -58,20 +59,22 @@ if opt.task == 'simulation_allcell_GRN':
 
     model.train_model()
 
-elif opt.task == 'simulation_singlecell_GRN':
-    print("simulation_singlecell_GRN")
-    if opt.setting == 'default':
-        opt.n_epochs = 150   #120
-        opt.beta = 1
-        opt.alpha = 100
-        opt.K1 = 1
-        opt.K2 = 2
-        opt.n_hidden = 128
-        opt.gamma = 0.95
-        opt.lr = 1e-4
-        opt.lr_step_size = 0.99
-        opt.batch_size = 64 
-        opt.GPU = True
-    model = SC_GRN_model(opt)
-    model.train_model()
+else:
+    raise ValueError("Unknown task. Please use simulation_allcell_GRN task.")
+# elif opt.task == 'simulation_singlecell_GRN':
+#     print("simulation_singlecell_GRN")
+#     if opt.setting == 'default':
+#         opt.n_epochs = 150   #120
+#         opt.beta = 1
+#         opt.alpha = 100
+#         opt.K1 = 1
+#         opt.K2 = 2
+#         opt.n_hidden = 128
+#         opt.gamma = 0.95
+#         opt.lr = 1e-4
+#         opt.lr_step_size = 0.99
+#         opt.batch_size = 64 
+#         opt.GPU = True
+#     model = SC_GRN_model(opt)
+#     model.train_model()
 

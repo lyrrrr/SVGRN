@@ -1,10 +1,10 @@
 # SVGRN
 
-SVGRN is a CVAE based deep learning model for cell-specific GRN inference from spatial transcriptomics data.
+SVGRN is a CVAE based deep learning model for cell- or spot-specific GRN inference from spatial transcriptomics data.
 
 ### Environment setup
 
-- Use the environment.yml to create the anaconda virtual environment for SVGRN:
+Use the environment.yml to create the anaconda virtual environment for SVGRN:
 
 ```
 cd SVGRN
@@ -29,27 +29,41 @@ conda env create -f environment.yml
 
 ### Stage 1
 
-- run stage 1 training bash file
+Run stage 1 training bash file
 
 ```
 bash train_main_stage1.sh
 ```
 
+Input parameter details:
+
+- `data_file`: Path to the input gene expression and spatial coordinate file. The file should be a dataframe with cells as rows and genes plus the spatial coordinates x and y as columns.
+
+- `tf_list`: Path to a plain text (.txt) file containing the list of transcription factors. Each line should contain one TF gene name.
+
+- `save_name`: Path to the directory where training results and outputs will be saved.
+
+- `net_file`: (Optional, default: `None`). Path to the ground-truth GRN file, if available.
+
 ### Stage 2
 
-- unzip the example sim data for stage 2 training
-
-```
-cd in_sim/g110_c2k_0.1
-mkdir cell_specific_gt_gene_pair
-unzip cell_specific_gt_gene_pair.zip -d cell_specific_gt_gene_pair
-```
-
-- run stage 2 training bash file
+Run stage 2 training bash file
 
 ```
 bash train_main_stage2_allcell.sh
 ```
+
+Input parameter details:
+
+- `data_file`: Path to the input gene expression and spatial coordinate file. The file should be a dataframe with cells as rows and genes plus the spatial coordinates x and y as columns.
+
+- `model_file`: Path to the trained stage-1 model.
+
+- `save_path`: Path to the directory where Stage-2 training results and outputs will be saved. 
+
+- `cellname_list`: Path to the file containing the list of cell names for which cell-specific GRNs will be predicted.
+
+- `net_path`: (Optional, default: `None`) Path to the directory containing all ground-truth cell-specific GRN files. Each file is named by the corresponding cell name.
 
 ### scMultiSim configuration for simulation data generation
 
@@ -60,23 +74,13 @@ More information about their R package installation can be found in their docume
 Here, we provide the R script with hyperparameters we used for running scMultiSim in the folder SVGRN/scMultiSim_DataPrepare. All the experiments we provide in the paper follow these hyperparameters setting with only changing the "num.genes", "num.cells", and "intrinsic.noise".
 
 
-### CeSpGRN configuration
+### Data availability
 
-In our benchmark experiments, we compared our model with CeSpGRN[2]. 
+The simulation data used in our benchmarking experiments can be downloaded from:
+https://drive.google.com/drive/folders/1qLtX-UNrUTp7utktJPhr1xgQrlZ-X7GZ?usp=sharing
 
-- CeSpGRN source code can be downloaded from their github repository:
-https://github.com/PeterZZQ/CeSpGRN
-
-- We set the hyperparameters as following for running CeSpGRN:
-
-```
-bandwidth = 0.1
-n_neigh = 30
-lamb = 0.1
-max_iters = 1000
-```
+The seqFISH dataset of mouse embrys can be downloaded from https://content.cruk.cam.ac.uk/jmlab/SpatialMouseAtlas2020/. The cSCC spatial transcriptomics dataset can be downloaded from Gene Expression Omnibus (GEO) (https://www.ncbi.nlm.nih.gov/geo/) with accession number GSE144240. The fallopian tube data comes from the HuBMAP Program (https://hubmapconsortium.org) and the sample used for our experiment can be found at https://portal.hubmapconsortium.org/browse/dataset/fa7fbcd8ae9219225f5df25e8c5e994e.
 
 ### Reference
-[1] Li, Hechen, et al. "scMultiSim: simulation of multi-modality single cell data guided by cell-cell interactions and gene regulatory networks." Research Square (2023): rs-3.
-
-[2] Zhang, Ziqi, et al. "CeSpGRN: Inferring cell-specific gene regulatory networks from single cell multi-omics and spatial data." bioRxiv (2022): 2022-03.
+[1] Li, H., Zhang, Z., Squires, M., Chen, X., Zhang, X.: scmultisim: simulation of single-cell multi-omics and spatial
+data guided by gene regulatory networks and cell–cell interactions. Nature Methods pp. 1–12 (2025)
