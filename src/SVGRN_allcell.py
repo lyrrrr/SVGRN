@@ -99,7 +99,6 @@ class non_celltype_GRN_model:
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=opt.lr_step_size, gamma=opt.gamma)
         best_Epr = 0
         cvae.train()
-
         if opt.GPU:
             RN_df = pd.DataFrame(cvae.adj_A.cpu().detach().numpy(), columns=list(gene_name))
         else:

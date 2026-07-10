@@ -16,6 +16,32 @@ from src.utils import evaluate, extractEdgesFromMatrix, RBF_weights
 
 Tensor = torch.cuda.FloatTensor
 
+def get_adaptive_sigma(pos_df, target_cell_name, k=10, min_sigma=1e-8):
+    """
+    Set sigma for one target cell as its distance to the kth nearest neighbor.
+    pos_df: dataframe with columns ['x', 'y'], index = cell names
+    target_cell_name: target cell index/name
+    k: kth nearest neighbor, excluding itself
+    """
+    coords = pos_df[["x", "y"]].values.astype(float)
+    target_coord = pos_df.loc[target_cell_name, ["x", "y"]].values.astype(float)
+
+    dists = np.sqrt(((coords - target_coord) ** 2).sum(axis=1))
+
+    # remove self-distance
+    dists = dists[dists > 0]
+
+    if len(dists) == 0:
+        return min_sigma
+
+    k_eff = min(k, len(dists))
+
+    sigma = np.partition(dists, k_eff - 1)[k_eff - 1]
+
+    sigma = max(float(sigma), min_sigma)
+
+    return sigma
+
 
 class SC_GRN_model:
     def __init__(self, opt):
@@ -33,8 +59,21 @@ class SC_GRN_model:
         
         # calculate weight for loss based on its distance to target cell
         target_pos = pos_df.loc[self.opt.target_cell_name]
+
+        # adaptive RBF bandwidth
+        if getattr(self.opt, "adaptive_W", False):
+            print("use adaptive W")
+            sigma = get_adaptive_sigma(
+                pos_df,
+                self.opt.target_cell_name,
+                k=self.opt.k_neighbor
+            )
+            print(f"RBF sigma for target cell {self.opt.target_cell_name}: {sigma}")
+        else:
+            sigma = self.opt.W
+
         weight_df = pd.DataFrame(columns=['weight'])
-        weight_df['weight'] = pos_df.apply(lambda row: RBF_weights(row, target_pos['x'], target_pos['y'], self.opt.W), axis=1)
+        weight_df['weight'] = pos_df.apply(lambda row: RBF_weights(row, target_pos['x'], target_pos['y'], sigma), axis=1)
         # print(f"dist weight: {weight_df.head(5)}")
         total_weight = weight_df['weight'].sum()
         # print(f"sum : {total_weight}")

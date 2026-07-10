@@ -47,6 +47,10 @@ parser.add_argument('--cellname_list', type=str, default='', help='cell name ')
 ######### if need dropout mask for sparse data #############
 parser.add_argument('--dropout_mask', action='store_true', help='if need dropout mask')
 
+########### For adaptive W #############
+parser.add_argument("--adaptive_W", action="store_true", help="Use adaptive RBF bandwidth based on kth nearest neighbor distance.")
+parser.add_argument("--k_neighbor", type=int, default=10, help="k for adaptive RBF bandwidth.")
+
 opt = parser.parse_args()
 
 try:
