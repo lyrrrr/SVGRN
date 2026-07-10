@@ -65,9 +65,9 @@ Input parameter details:
 
 - `net_path`: (Optional, default: `None`) Path to the directory containing all ground-truth cell-specific GRN files. Each file is named by the corresponding cell name.
 
-- `--adaptive_W`: (Optional, default: `false`) Enable adaptive RBF bandwidth selection. When specified, the bandwidth for each target unit is determined from the distance to its \(k\)-th nearest neighbor. If omitted, a fixed bandwidth is used.
+- `adaptive_W`: (Optional, default: `false`) Enable adaptive RBF bandwidth selection. When specified, the bandwidth for each target unit is determined from the distance to its \(k\)-th nearest neighbor. If omitted, a fixed bandwidth is used.
 
-- `--k_neighbor`: (Optional, default: 10 ) Set the number of nearest neighbors used to determine the adaptive RBF bandwidth. This parameter is only used when `--adaptive_W` is enabled.
+- `k_neighbor`: (Optional, default: 10 ) Set the number of nearest neighbors used to determine the adaptive RBF bandwidth. This parameter is only used when `--adaptive_W` is enabled.
 
 ### Scalability and practical usage
 
